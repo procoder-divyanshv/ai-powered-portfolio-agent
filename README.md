@@ -29,7 +29,7 @@ flowchart TD
 
     Input --> UI
     SessionMgr --> UI
-    UI -->|POST /chat {question, session_id}| Router
+    UI -->|"POST /chat (question, session_id)"| Router
     ResumeParser -->|Startup Ingestion| MemoryCache
     MemoryCache --> Router
     Router --> Guardrails
