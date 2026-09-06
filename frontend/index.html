@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Divyansh Verma - Portfolio AI Assistant</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #424242;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #555555;
+        }
+
+        .prose p {
+            margin-bottom: 0.75rem;
+        }
+
+        .prose p:last-child {
+            margin-bottom: 0;
+        }
+
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .streaming-cursor {
+            display: inline-block;
+            width: 7px;
+            height: 16px;
+            background-color: #374151;
+            margin-left: 3px;
+            vertical-align: -1px;
+            animation: blink 0.8s infinite;
+        }
+
+        .dark .streaming-cursor {
+            background-color: #d1d5db;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-white dark:bg-[#212121] text-[#0d0d0d] dark:text-[#ececec] font-sans antialiased h-screen flex overflow-hidden transition-colors duration-200">
+
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebar-overlay" onclick="toggleMobileSidebar(false)"
+        class="fixed inset-0 bg-black/60 z-40 hidden md:hidden transition-opacity"></div>
+
+    <!-- Sidebar Drawer (Responsive Slide-Over) -->
+    <aside id="sidebar"
+        class="fixed md:static inset-y-0 left-0 z-50 w-72 bg-[#f9f9f9] dark:bg-[#171717] border-r border-[#e5e5e5] dark:border-[#2f2f2f] flex flex-col justify-between p-3 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div>
+            <!-- Header Controls: New Chat, Theme Switcher & Close Mobile -->
+            <div class="flex items-center gap-2">
+                <button onclick="resetChat(); toggleMobileSidebar(false);"
+                    class="flex-1 flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg border border-[#e5e5e5] dark:border-[#3e3e3e] hover:bg-[#ececec] dark:hover:bg-[#212121] transition duration-200">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="message-square-plus" class="w-4 h-4"></i>
+                        New Interview
+                    </span>
+                    <i data-lucide="pen-square" class="w-4 h-4 text-gray-400"></i>
+                </button>
+
+                <button onclick="toggleTheme()" title="Switch Theme"
+                    class="p-2 rounded-lg border border-[#e5e5e5] dark:border-[#3e3e3e] hover:bg-[#ececec] dark:hover:bg-[#212121] text-gray-600 dark:text-gray-300 transition duration-200">
+                    <i id="theme-icon-desktop" data-lucide="sun" class="w-4 h-4"></i>
+                </button>
+
+                <button onclick="toggleMobileSidebar(false)"
+                    class="md:hidden p-2 rounded-lg border border-[#e5e5e5] dark:border-[#3e3e3e] text-gray-600 dark:text-gray-300">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Quick Shortcuts -->
+            <div class="mt-6">
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 px-3 mb-2">
+                    Suggested Inquiries
+                </p>
+                <div class="space-y-1">
+                    <button
+                        onclick="quickPrompt('Tell me about yourself and your background.'); toggleMobileSidebar(false);"
+                        class="w-full text-left text-sm text-gray-700 dark:text-gray-300 px-3 py-2 rounded-md hover:bg-[#ececec] dark:hover:bg-[#212121] truncate transition">
+                        👋 Intro & Summary
+                    </button>
+                    <button
+                        onclick="quickPrompt('What are your strongest technical skills?'); toggleMobileSidebar(false);"
+                        class="w-full text-left text-sm text-gray-700 dark:text-gray-300 px-3 py-2 rounded-md hover:bg-[#ececec] dark:hover:bg-[#212121] truncate transition">
+                        🛠️ Core Tech Stack
+                    </button>
+                    <button
+                        onclick="quickPrompt('Walk me through your most impactful project.'); toggleMobileSidebar(false);"
+                        class="w-full text-left text-sm text-gray-700 dark:text-gray-300 px-3 py-2 rounded-md hover:bg-[#ececec] dark:hover:bg-[#212121] truncate transition">
+                        🚀 Key Project Details
+                    </button>
+                    <button onclick="quickPrompt('Why are you a good fit for this role?'); toggleMobileSidebar(false);"
+                        class="w-full text-left text-sm text-gray-700 dark:text-gray-300 px-3 py-2 rounded-md hover:bg-[#ececec] dark:hover:bg-[#212121] truncate transition">
+                        🎯 Role Suitability
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Candidate Status & Direct Links Footer -->
+        <div class="border-t border-[#e5e5e5] dark:border-[#2f2f2f] pt-3 px-2 flex flex-col gap-2">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-xs text-white">
+                    DV
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-gray-900 dark:text-white truncate">Divyansh Verma</p>
+                    <p class="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
+                        <span class="w-1.5 h-1.5 bg-emerald-500 dark:bg-emerald-400 rounded-full animate-pulse"></span>
+                        Available for Hire
+                    </p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Chat Workspace -->
+    <main class="flex-1 flex flex-col h-full bg-white dark:bg-[#212121] relative transition-colors duration-200">
+
+        <!-- Top Recruiter Action Bar -->
+        <header
+            class="h-14 border-b border-[#e5e5e5] dark:border-[#2f2f2f] flex items-center justify-between px-4 z-10 bg-white/80 dark:bg-[#212121]/80 backdrop-blur">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMobileSidebar(true)"
+                    class="md:hidden p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2f2f2f] text-gray-600 dark:text-gray-300">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="font-semibold text-sm hidden sm:inline">Divyansh Verma</span>
+                    <span
+                        class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-400 font-medium">Portfolio
+                        AI</span>
+                </div>
+            </div>
+
+            <!-- Recruiter Action Badges & CTAs -->
+            <div class="flex items-center gap-2">
+                <!-- Social Profiles -->
+                <div class="flex items-center border-r border-[#e5e5e5] dark:border-[#383838] pr-2 mr-1 gap-1">
+                    <a href="https://github.com/procoder-divyanshv" target="_blank" title="GitHub Profile"
+                        class="p-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#2f2f2f] transition">
+                        <i data-lucide="github" class="w-4 h-4"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/in/divyansh-verma-045602274" target="_blank" title="LinkedIn Profile"
+                        class="p-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:text-[#0077b5] hover:bg-gray-100 dark:hover:bg-[#2f2f2f] transition">
+                        <i data-lucide="linkedin" class="w-4 h-4"></i>
+                    </a>
+                    <a href="mailto:dvofficial72@gmail.com" title="Email Divyansh"
+                        class="p-1.5 rounded-lg text-gray-600 dark:text-gray-400 hover:text-emerald-500 hover:bg-gray-100 dark:hover:bg-[#2f2f2f] transition">
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                    </a>
+                </div>
+
+                <!-- Download PDF Button -->
+                <a id="resume-btn" href="#" download="Divyansh_Verma_Resume.pdf"
+                    class="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-[#e5e5e5] dark:border-[#3e3e3e] hover:bg-[#ececec] dark:hover:bg-[#2f2f2f] text-gray-700 dark:text-gray-300 transition shadow-sm">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Resume</span>
+                </a>
+                <!-- Book an Interview CTA -->
+                <a href="https://cal.com/divyansh-verma-sq6qnn" target="_blank"
+                    class="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Book Call</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Message Feed Container -->
+        <div id="chat-feed" class="flex-1 overflow-y-auto px-4 md:px-0 py-6 space-y-6">
+
+            <!-- Welcome Screen -->
+            <div id="welcome-screen"
+                class="max-w-2xl mx-auto flex flex-col items-center justify-center h-full text-center mt-12 px-4">
+                <div
+                    class="w-12 h-12 rounded-2xl bg-[#f4f4f4] dark:bg-[#2f2f2f] border border-[#e5e5e5] dark:border-[#424242] flex items-center justify-center mb-4 shadow-sm">
+                    <i data-lucide="bot" class="w-6 h-6 text-gray-800 dark:text-white"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2">Technical Interview Simulation
+                </h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 max-w-md mb-8 leading-relaxed">
+                    I represent Divyansh Verma in the first person. Query my production ML pipelines, AWS architectures,
+                    or open-source initiatives.
+                </p>
+
+                <!-- Starter Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full text-left">
+                    <div onclick="quickPrompt('What are your main areas of technical expertise?')"
+                        class="p-3.5 border border-[#e5e5e5] dark:border-[#3e3e3e] rounded-xl hover:bg-[#f4f4f4] dark:hover:bg-[#2f2f2f] cursor-pointer transition">
+                        <p class="text-sm font-medium text-gray-800 dark:text-gray-200">Core Tech Stack</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Python, C++, AWS Cloud, and Deep
+                            Learning</p>
+                    </div>
+                    <div onclick="quickPrompt('Can you summarize your work history and internships?')"
+                        class="p-3.5 border border-[#e5e5e5] dark:border-[#3e3e3e] rounded-xl hover:bg-[#f4f4f4] dark:hover:bg-[#2f2f2f] cursor-pointer transition">
+                        <p class="text-sm font-medium text-gray-800 dark:text-gray-200">Work Experience</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">InternPe, GSSoC, and Innogeeks
+                            engagements</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Input Area -->
+        <div class="w-full bg-white dark:bg-[#212121] pb-5 pt-2 transition-colors duration-200">
+            <div class="max-w-2xl mx-auto px-4">
+                <form id="chat-form"
+                    class="relative flex items-end bg-[#f4f4f4] dark:bg-[#2f2f2f] border border-[#e5e5e5] dark:border-[#3e3e3e] focus-within:border-gray-400 dark:focus-within:border-[#676767] rounded-3xl p-2 px-4 transition shadow-sm dark:shadow-lg">
+                    <textarea id="user-input" rows="1" placeholder="Ask me anything about my profile..."
+                        class="w-full bg-transparent border-none text-[#0d0d0d] dark:text-[#ececec] text-base focus:outline-none resize-none max-h-32 py-1.5 placeholder-gray-500 dark:placeholder-gray-400"></textarea>
+                    <button type="button" id="send-btn" disabled
+                        class="bg-[#e2e8f0] dark:bg-[#383838] text-gray-400 dark:text-gray-500 p-1.5 rounded-full transition flex-shrink-0 ml-2 cursor-not-allowed">
+                        <svg class="w-4 h-4 stroke-current fill-none stroke-2 stroke-linecap-round stroke-linejoin-round"
+                            viewBox="0 0 24 24">
+                            <line x1="12" y1="19" x2="12" y2="5"></line>
+                            <polyline points="5 12 12 5 19 12"></polyline>
+                        </svg>
+                    </button>
+                </form>
+                <p class="text-[11px] text-gray-500 dark:text-gray-400 text-center mt-2">
+                    Responses generated via Groq Llama 3.3 grounded strictly on verified resume data.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript Interaction Logic -->
+    <script>
+        const BACKEND_URL = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost"
+            ? "http://127.0.0.1:8000"
+            : "https://your-backend-app.onrender.com"; // Replace with your live Render backend URL
+
+        const API_URL = `${BACKEND_URL}/chat`;
+        const chatFeed = document.getElementById("chat-feed");
+        const welcomeScreen = document.getElementById("welcome-screen");
+        const chatForm = document.getElementById("chat-form");
+        const userInput = document.getElementById("user-input");
+        const sendBtn = document.getElementById("send-btn");
+        const sidebar = document.getElementById("sidebar");
+        const sidebarOverlay = document.getElementById("sidebar-overlay");
+        const resumeBtn = document.getElementById("resume-btn");
+        if (resumeBtn) {
+            resumeBtn.href = `${BACKEND_URL}/download-resume`;
+        }
+
+        let currentReader = null;
+        let isGenerating = false;
+
+        // Theme Initialization & Handling
+        function initTheme() {
+            const savedTheme = localStorage.getItem("theme");
+            const isDark = savedTheme !== "light";
+            document.documentElement.classList.toggle("dark", isDark);
+            updateThemeIcons(isDark);
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle("dark");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            updateThemeIcons(isDark);
+            updateSendButtonState();
+        }
+
+        function updateThemeIcons(isDark) {
+            const desktopIcon = document.getElementById("theme-icon-desktop");
+            const iconName = isDark ? "sun" : "moon";
+            if (desktopIcon) desktopIcon.setAttribute("data-lucide", iconName);
+            lucide.createIcons();
+        }
+
+        initTheme();
+
+        // Mobile Slide-Over Drawer Controls
+        function toggleMobileSidebar(open) {
+            if (open) {
+                sidebar.classList.remove("-translate-x-full");
+                sidebarOverlay.classList.remove("hidden");
+            } else {
+                sidebar.classList.add("-translate-x-full");
+                sidebarOverlay.classList.add("hidden");
+            }
+        }
+
+        // Dynamically toggle send/stop visual state
+        function updateSendButtonState() {
+            const isDark = document.documentElement.classList.contains("dark");
+
+            if (isGenerating) {
+                sendBtn.disabled = false;
+                sendBtn.className = isDark
+                    ? "bg-white text-black p-1.5 rounded-full hover:bg-gray-200 transition flex-shrink-0 ml-2 cursor-pointer"
+                    : "bg-black text-white p-1.5 rounded-full hover:bg-gray-800 transition flex-shrink-0 ml-2 cursor-pointer";
+                sendBtn.innerHTML = `
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                        <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+                    </svg>`;
+                return;
+            }
+
+            const hasContent = userInput.value.trim().length > 0;
+            sendBtn.disabled = !hasContent;
+
+            if (hasContent) {
+                sendBtn.className = isDark
+                    ? "bg-white text-black p-1.5 rounded-full hover:bg-gray-200 transition flex-shrink-0 ml-2 cursor-pointer shadow-md"
+                    : "bg-black text-white p-1.5 rounded-full hover:bg-gray-800 transition flex-shrink-0 ml-2 cursor-pointer shadow-sm";
+                sendBtn.innerHTML = `
+                    <svg class="w-4 h-4 stroke-current fill-none stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+                        <line x1="12" y1="19" x2="12" y2="5"></line>
+                        <polyline points="5 12 12 5 19 12"></polyline>
+                    </svg>`;
+            } else {
+                sendBtn.className = isDark
+                    ? "bg-[#383838] text-gray-500 p-1.5 rounded-full transition flex-shrink-0 ml-2 cursor-not-allowed"
+                    : "bg-[#e2e8f0] text-gray-400 p-1.5 rounded-full transition flex-shrink-0 ml-2 cursor-not-allowed";
+                sendBtn.innerHTML = `
+                    <svg class="w-4 h-4 stroke-current fill-none stroke-2 stroke-linecap-round stroke-linejoin-round" viewBox="0 0 24 24">
+                        <line x1="12" y1="19" x2="12" y2="5"></line>
+                        <polyline points="5 12 12 5 19 12"></polyline>
+                    </svg>`;
+            }
+        }
+
+        function autoResize() {
+            userInput.style.height = "auto";
+            userInput.style.height = Math.min(userInput.scrollHeight, 128) + "px";
+            updateSendButtonState();
+        }
+
+        userInput.addEventListener("input", autoResize);
+        userInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        sendBtn.addEventListener("click", () => {
+            if (isGenerating) {
+                stopGeneration();
+            } else {
+                sendMessage();
+            }
+        });
+
+        chatForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            sendMessage();
+        });
+
+        function quickPrompt(text) {
+            if (isGenerating) return;
+            userInput.value = text;
+            autoResize();
+            sendMessage();
+        }
+
+        function resetChat() {
+            if (isGenerating) stopGeneration();
+            chatFeed.innerHTML = "";
+            chatFeed.appendChild(welcomeScreen);
+            welcomeScreen.classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function isScrolledNearBottom() {
+            const threshold = 80;
+            return chatFeed.scrollHeight - chatFeed.scrollTop - chatFeed.clientHeight <= threshold;
+        }
+
+        function scrollToBottom() {
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+        }
+
+        function stopGeneration() {
+            if (currentReader) {
+                currentReader.cancel();
+                currentReader = null;
+            }
+            isGenerating = false;
+            updateSendButtonState();
+        }
+
+        function appendMessage(sender, content) {
+            if (!welcomeScreen.classList.contains("hidden")) {
+                welcomeScreen.classList.add("hidden");
+            }
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "w-full flex justify-center";
+
+            const container = document.createElement("div");
+            container.className = "max-w-2xl w-full flex gap-3";
+
+            if (sender === "user") {
+                container.classList.add("justify-end");
+                container.innerHTML = `<div class="bg-[#f4f4f4] dark:bg-[#2f2f2f] text-[#0d0d0d] dark:text-[#ececec] text-base px-4 py-2.5 rounded-3xl max-w-[80%] w-fit text-left leading-relaxed break-words shadow-sm">${content.trim()}</div>`;
+                wrapper.appendChild(container);
+                chatFeed.appendChild(wrapper);
+                scrollToBottom();
+                return null;
+            } else {
+                container.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-emerald-600 flex-shrink-0 flex items-center justify-center font-bold text-xs text-white mt-1">
+                        AI
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="text-base text-[#1f2937] dark:text-[#d1d5db] prose dark:prose-invert leading-relaxed markdown-body">
+                            ${marked.parse(content)}
+                        </div>
+                        <!-- Follow-up chips target container -->
+                        <div class="chips-container flex flex-wrap gap-2 mt-3 empty:hidden"></div>
+                    </div>
+                `;
+                wrapper.appendChild(container);
+                chatFeed.appendChild(wrapper);
+                scrollToBottom();
+
+                return {
+                    markdownBody: container.querySelector('.markdown-body'),
+                    chipsContainer: container.querySelector('.chips-container')
+                };
+            }
+        }
+
+        // Dynamic Follow-Up Chips Generator
+        function renderFollowUpChips(chipsContainer, text) {
+            const lower = text.toLowerCase();
+            let prompts = [];
+
+            if (lower.includes("aws") || lower.includes("cloud") || lower.includes("kinesis")) {
+                prompts = [
+                    "How did you configure AWS Glue vs Lambda?",
+                    "What strategies did you use for AWS cost optimization?"
+                ];
+            } else if (lower.includes("internpe") || lower.includes("predict") || lower.includes("model")) {
+                prompts = [
+                    "What evaluation metrics did you prioritize?",
+                    "How did you handle hyperparameter tuning?"
+                ];
+            } else if (lower.includes("flutter") || lower.includes("django") || lower.includes("gssoc")) {
+                prompts = [
+                    "How did you manage state in Flutter?",
+                    "Walk me through your code review workflow."
+                ];
+            } else {
+                prompts = [
+                    "What was your single biggest technical challenge?",
+                    "Why are you interested in full-stack AI roles?"
+                ];
+            }
+
+            chipsContainer.innerHTML = prompts.map(p => `
+                <button onclick="quickPrompt('${p}')"
+                    class="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-[#383838] bg-gray-50 dark:bg-[#2a2a2a] text-gray-700 dark:text-gray-300 hover:border-emerald-500 dark:hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="sparkles" class="w-3 h-3 text-emerald-500"></i>
+                    <span>${p}</span>
+                </button>
+            `).join("");
+
+            lucide.createIcons();
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            const id = "typing-" + Date.now();
+            const wrapper = document.createElement("div");
+            wrapper.id = id;
+            wrapper.className = "w-full flex justify-center";
+
+            wrapper.innerHTML = `
+                <div class="max-w-2xl w-full flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-600 flex-shrink-0 flex items-center justify-center font-bold text-xs text-white mt-1">
+                        AI
+                    </div>
+                    <div class="flex items-center space-x-1.5 py-2">
+                        <span class="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce"></span>
+                        <span class="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                        <span class="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                    </div>
+                </div>
+            `;
+
+            chatFeed.appendChild(wrapper);
+            scrollToBottom();
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+        function getSessionId() {
+            let sid = localStorage.getItem("portfolio_chat_session_id");
+            if (!sid) {
+                sid = "recruiter_" + crypto.randomUUID();
+                localStorage.setItem("portfolio_chat_session_id", sid);
+            }
+            return sid;
+        }
+
+        async function sendMessage() {
+            if (isGenerating) return;
+
+            const question = userInput.value.trim();
+            if (!question) return;
+
+            appendMessage("user", question);
+            userInput.value = "";
+            userInput.style.height = "auto";
+            isGenerating = true;
+            updateSendButtonState();
+
+            const typingId = showTypingIndicator();
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        question: question,
+                        session_id: getSessionId()
+                    }),
+                });
+
+                if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+                removeTypingIndicator(typingId);
+
+                const { markdownBody, chipsContainer } = appendMessage("assistant", "");
+                currentReader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let completeMessage = "";
+
+                while (true) {
+                    const { done, value } = await currentReader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    completeMessage += chunk;
+
+                    const shouldAutoScroll = isScrolledNearBottom();
+
+                    markdownBody.innerHTML = marked.parse(completeMessage) + `<span class="streaming-cursor"></span>`;
+
+                    if (shouldAutoScroll) {
+                        scrollToBottom();
+                    }
+                }
+
+                markdownBody.innerHTML = marked.parse(completeMessage);
+                renderFollowUpChips(chipsContainer, completeMessage);
+
+            } catch (err) {
+                removeTypingIndicator(typingId);
+                if (err.name !== "AbortError") {
+                    appendMessage("assistant", `⚠️ **Error**: Could not connect to backend.`);
+                }
+            } finally {
+                currentReader = null;
+                isGenerating = false;
+                updateSendButtonState();
+            }
+        }
+    </script>
+</body>
+
+</html>
