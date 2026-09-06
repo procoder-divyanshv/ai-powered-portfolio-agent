@@ -4,6 +4,9 @@ An interactive, recruiter-facing AI portfolio agent that represents **Divyansh V
 
 ---
 
+> 🚀 **Live Production Application:** [https://ai-powered-portfolio-agent.vercel.app/]
+> **Note on Free Tier Latency**: The backend is hosted on Render's free tier, which enters sleep mode after 15 minutes of idle time. The very first request may experience a ~40-second cold-start delay before returning to real-time token streaming.
+
 ## 🏗️ System Architecture
 
 ```mermaid
