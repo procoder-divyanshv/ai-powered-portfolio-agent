@@ -1,6 +1,7 @@
 
 import os
 import json
+import asyncio
 from pathlib import Path
 from dotenv import load_dotenv
 from groq import Groq
@@ -230,14 +231,15 @@ async def chat_endpoint(request: ChatRequest):
     })
     session_ref.set({"last_active": firestore.SERVER_TIMESTAMP}, merge=True)
 
-    # 2. Stream AI response and record once finished
+    # 2. Stream AI response with zero buffering
     async def stream_and_record():
         full_reply = ""
         try:
-            # Replaced undefined function with ask_llm and standard 'for' loop
             for chunk in ask_llm(request.question, parsed_resume):
                 full_reply += chunk
                 yield chunk
+                # Force FastAPI/Starlette to immediately flush the packet to the client
+                await asyncio.sleep(0)
         finally:
             if full_reply.strip():
                 messages_ref.add({
@@ -246,7 +248,19 @@ async def chat_endpoint(request: ChatRequest):
                     "created_at": firestore.SERVER_TIMESTAMP
                 })
 
-    return StreamingResponse(stream_and_record(), media_type="text/plain")
+    # Crucial headers to disable proxy buffering on Render & Cloudflare
+    headers = {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",  # Tells Nginx/Render reverse proxies: DO NOT BUFFER
+    }
+
+    return StreamingResponse(
+        stream_and_record(),
+        media_type="text/event-stream",
+        headers=headers
+    )
 @app.get("/download-resume")
 def download_resume():
     if not RESUME_PATH.exists():
