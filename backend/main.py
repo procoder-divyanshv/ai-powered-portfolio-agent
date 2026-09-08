@@ -41,7 +41,7 @@ app.add_middleware(
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-RESUME_PATH = BASE_DIR / "RESUME_1 (1).pdf"
+RESUME_PATH = BASE_DIR / "resume.pdf"
 
 
 BASE_DIR = Path(__file__).resolve().parent
